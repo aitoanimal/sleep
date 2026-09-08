@@ -201,14 +201,4 @@
     const viewHistoryBtn = document.getElementById("viewHistoryBtn");
     const historyContainer = document.getElementById("historyContainer");
 
-    let selectedPerson = null;
-    let sleepStart = null;
-
-    function formatTime(date) {
-      const h = String(date.getHours()).padStart(2, "0");
-      const m = String(date.getMinutes()).padStart(2, "0");
-      return `${h}:${m}`;
-    }
-
-    function loadHistory() {
-      const data = JSON.parse
+    let selectedPerson = null
