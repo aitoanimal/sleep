@@ -2,22 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>睡眠管理アプリ</title>
+  <title>睡眠管理アプリ - あい vs かい</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    /* spicato 10th 風のポップで明るいデザイン */
-
+    /* spicato 10th風：ポップで明るいデザイン */
     :root {
       --bg: #fff7f0;
-      --card-bg: #ffffff;
       --accent: #ff8a5c;
       --accent-soft: #ffe0cc;
-      --text-main: #333333;
-      --text-sub: #777777;
+      --text-main: #333;
+      --text-sub: #777;
       --border: #ffd0b0;
       --button-bg: #ff8a5c;
-      --button-text: #ffffff;
+      --button-text: #fff;
     }
 
     * {
@@ -44,7 +42,7 @@
     .card {
       width: 100%;
       max-width: 420px;
-      background: var(--card-bg);
+      background: #fff;
       border-radius: 32px;
       padding: 32px 24px;
       text-align: center;
@@ -54,30 +52,11 @@
       overflow: hidden;
     }
 
-    .card::before {
-      content: "";
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background: var(--accent-soft);
-      top: -40px;
-      right: -40px;
-      opacity: 0.7;
-    }
-
     h1 {
       font-size: 24px;
       font-weight: 400;
       letter-spacing: 0.12em;
       margin-bottom: 8px;
-    }
-
-    .tagline {
-      font-size: 13px;
-      color: var(--text-sub);
-      margin-bottom: 20px;
-      letter-spacing: 0.08em;
     }
 
     .cat-wrapper {
@@ -131,38 +110,17 @@
       box-shadow: 0 10px 22px rgba(255, 138, 92, 0.45);
     }
 
-    button:active {
-      transform: translateY(1px);
-      box-shadow: 0 4px 10px rgba(255, 138, 92, 0.3);
-    }
-
-    button:disabled {
-      opacity: 0.4;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
-    }
-
-    #wakeBtn {
-      background: #ffb15c;
-    }
-
-    .subtext {
-      margin-top: 14px;
-      font-size: 12px;
-      color: var(--text-sub);
-      letter-spacing: 0.04em;
-    }
-
-    .badge {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: var(--accent-soft);
+    .winner {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
       color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.08em;
+      animation: pop 0.6s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
@@ -170,15 +128,87 @@
 <body>
   <div class="app">
     <div class="card">
-      <h1>睡眠管理</h1>
-      <div class="tagline">CAT SLEEP TRACKER</div>
+      <h1>睡眠管理 - あい vs かい</h1>
 
       <div class="cat-wrapper">
-        <!-- ここに猫のイラスト画像を置く（sleep / good / bad） -->
         <img id="catImage" src="cat_sleep.png" alt="寝ている猫のイラスト" />
       </div>
 
       <div id="status" class="info">
-        寝る前に「寝る」ボタンをタップしてください。
+        「寝る」ボタンを押して就寝を記録してください。
       </div>
 
+      <div id="sleepTime" class="sleep-time"></div>
+
+      <button id="sleepBtn">寝る</button>
+      <button id="wakeBtn" style="display:none;">起きた</button>
+
+      <div id="winner" class="winner"></div>
+    </div>
+  </div>
+
+  <script>
+    const sleepBtn = document.getElementById("sleepBtn");
+    const wakeBtn = document.getElementById("wakeBtn");
+    const catImage = document.getElementById("catImage");
+    const status = document.getElementById("status");
+    const sleepTimeEl = document.getElementById("sleepTime");
+    const winnerEl = document.getElementById("winner");
+
+    let sleepStart = null;
+    let aiSleep = null;
+    let kaiSleep = null;
+
+    function formatTime(date) {
+      const h = String(date.getHours()).padStart(2, "0");
+      const m = String(date.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+
+    sleepBtn.addEventListener("click", () => {
+      sleepStart = new Date();
+      status.textContent = `就寝時刻：${formatTime(sleepStart)}　おやすみなさい。`;
+      catImage.src = "cat_sleep.png";
+      sleepBtn.style.display = "none";
+      wakeBtn.style.display = "inline-block";
+      winnerEl.textContent = "";
+    });
+
+    wakeBtn.addEventListener("click", () => {
+      if (!sleepStart) return;
+
+      const wakeTime = new Date();
+      const diffHours =
+        (wakeTime.getTime() - sleepStart.getTime()) / 1000 / 60 / 60;
+
+      // ランダムに「あい」か「かい」の睡眠時間を記録
+      aiSleep = diffHours + Math.random() * 0.5;
+      kaiSleep = diffHours + Math.random() * 0.5;
+
+      sleepTimeEl.textContent = `あい：${aiSleep.toFixed(1)} 時間　／　かい：${kaiSleep.toFixed(1)} 時間`;
+
+      wakeBtn.style.display = "none";
+      sleepBtn.style.display = "inline-block";
+
+      if (diffHours >= 7) {
+        catImage.src = "cat_good.png";
+        status.textContent = `起床時刻：${formatTime(wakeTime)}　よく眠れました。`;
+      } else {
+        catImage.src = "cat_bad.png";
+        status.textContent = `起床時刻：${formatTime(wakeTime)}　睡眠が少なめです。`;
+      }
+
+      // 勝者判定
+      if (aiSleep > kaiSleep) {
+        winnerEl.textContent = "WINNER：あい 🏆";
+      } else if (kaiSleep > aiSleep) {
+        winnerEl.textContent = "WINNER：かい 🏆";
+      } else {
+        winnerEl.textContent = "DRAW 🤝";
+      }
+
+      sleepStart = null;
+    });
+  </script>
+</body>
+</html>
