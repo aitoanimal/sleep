@@ -129,7 +129,7 @@
   <div class="app">
     <div class="card">
 
-      <!-- トップ画面 -->
+      <!-- トップ画面：あい or かい を選択 -->
       <div id="topScreen">
         <h1>睡眠管理</h1>
 
@@ -137,14 +137,15 @@
           <img src="cat_sleep.png" alt="寝ている猫" />
         </div>
 
-        <div class="info">寝る準備ができたら「寝る」を押してね。</div>
+        <div class="info">誰の睡眠を記録する？</div>
 
-        <button id="goSleepBtn">寝る</button>
+        <button id="selectAiBtn">あい</button>
+        <button id="selectKaiBtn">かい</button>
       </div>
 
       <!-- 睡眠中画面 -->
       <div id="sleepScreen" style="display:none;">
-        <h1>睡眠中…</h1>
+        <h1 id="sleepTitle"></h1>
 
         <div class="cat-wrapper">
           <img src="cat_sleep.png" alt="寝ている猫" />
@@ -178,15 +179,20 @@
     const sleepScreen = document.getElementById("sleepScreen");
     const resultScreen = document.getElementById("resultScreen");
 
-    const goSleepBtn = document.getElementById("goSleepBtn");
+    const selectAiBtn = document.getElementById("selectAiBtn");
+    const selectKaiBtn = document.getElementById("selectKaiBtn");
+
+    const sleepTitle = document.getElementById("sleepTitle");
+    const sleepStatus = document.getElementById("sleepStatus");
+
     const wakeBtn = document.getElementById("wakeBtn");
     const backBtn = document.getElementById("backBtn");
 
-    const sleepStatus = document.getElementById("sleepStatus");
     const resultText = document.getElementById("resultText");
     const winnerEl = document.getElementById("winner");
     const resultCat = document.getElementById("resultCat");
 
+    let selectedPerson = null;
     let sleepStart = null;
 
     function formatTime(date) {
@@ -195,24 +201,37 @@
       return `${h}:${m}`;
     }
 
-    // トップ → 睡眠中
-    goSleepBtn.addEventListener("click", () => {
+    // あい選択
+    selectAiBtn.addEventListener("click", () => {
+      selectedPerson = "あい";
+      startSleep();
+    });
+
+    // かい選択
+    selectKaiBtn.addEventListener("click", () => {
+      selectedPerson = "かい";
+      startSleep();
+    });
+
+    // 睡眠開始
+    function startSleep() {
       sleepStart = new Date();
+      sleepTitle.textContent = `${selectedPerson} の睡眠中…`;
       sleepStatus.textContent = `就寝時刻：${formatTime(sleepStart)}　おやすみなさい。`;
 
       topScreen.style.display = "none";
       sleepScreen.style.display = "block";
-    });
+    }
 
-    // 睡眠中 → 結果
+    // 起きる → 結果画面へ
     wakeBtn.addEventListener("click", () => {
       const wakeTime = new Date();
       const diffHours =
         (wakeTime.getTime() - sleepStart.getTime()) / 1000 / 60 / 60;
 
       // あい・かいの睡眠時間（ランダム補正）
-      const aiSleep = diffHours + Math.random() * 0.3;
-      const kaiSleep = diffHours + Math.random() * 0.3;
+      const aiSleep = selectedPerson === "あい" ? diffHours : diffHours + Math.random() * 0.3;
+      const kaiSleep = selectedPerson === "かい" ? diffHours : diffHours + Math.random() * 0.3;
 
       resultText.textContent =
         `あい：${aiSleep.toFixed(1)} 時間　／　かい：${kaiSleep.toFixed(1)} 時間`;
