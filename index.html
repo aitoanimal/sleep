@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>睡眠管理アプリ - あい vs かい</title>
+  <title>睡眠管理 - あい vs かい</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -112,7 +112,7 @@
 
     .winner {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       color: var(--accent);
       animation: pop 0.6s ease;
@@ -128,36 +128,66 @@
 <body>
   <div class="app">
     <div class="card">
-      <h1>睡眠管理 - あい vs かい</h1>
 
-      <div class="cat-wrapper">
-        <img id="catImage" src="cat_sleep.png" alt="寝ている猫のイラスト" />
+      <!-- トップ画面 -->
+      <div id="topScreen">
+        <h1>睡眠管理</h1>
+
+        <div class="cat-wrapper">
+          <img src="cat_sleep.png" alt="寝ている猫" />
+        </div>
+
+        <div class="info">寝る準備ができたら「寝る」を押してね。</div>
+
+        <button id="goSleepBtn">寝る</button>
       </div>
 
-      <div id="status" class="info">
-        「寝る」ボタンを押して就寝を記録してください。
+      <!-- 睡眠中画面 -->
+      <div id="sleepScreen" style="display:none;">
+        <h1>睡眠中…</h1>
+
+        <div class="cat-wrapper">
+          <img src="cat_sleep.png" alt="寝ている猫" />
+        </div>
+
+        <div id="sleepStatus" class="info"></div>
+
+        <button id="wakeBtn">起きる</button>
       </div>
 
-      <div id="sleepTime" class="sleep-time"></div>
+      <!-- 結果画面 -->
+      <div id="resultScreen" style="display:none;">
+        <h1>結果</h1>
 
-      <button id="sleepBtn">寝る</button>
-      <button id="wakeBtn" style="display:none;">起きた</button>
+        <div class="cat-wrapper">
+          <img id="resultCat" src="cat_good.png" alt="猫" />
+        </div>
 
-      <div id="winner" class="winner"></div>
+        <div id="resultText" class="sleep-time"></div>
+
+        <div id="winner" class="winner"></div>
+
+        <button id="backBtn">トップに戻る</button>
+      </div>
+
     </div>
   </div>
 
   <script>
-    const sleepBtn = document.getElementById("sleepBtn");
+    const topScreen = document.getElementById("topScreen");
+    const sleepScreen = document.getElementById("sleepScreen");
+    const resultScreen = document.getElementById("resultScreen");
+
+    const goSleepBtn = document.getElementById("goSleepBtn");
     const wakeBtn = document.getElementById("wakeBtn");
-    const catImage = document.getElementById("catImage");
-    const status = document.getElementById("status");
-    const sleepTimeEl = document.getElementById("sleepTime");
+    const backBtn = document.getElementById("backBtn");
+
+    const sleepStatus = document.getElementById("sleepStatus");
+    const resultText = document.getElementById("resultText");
     const winnerEl = document.getElementById("winner");
+    const resultCat = document.getElementById("resultCat");
 
     let sleepStart = null;
-    let aiSleep = null;
-    let kaiSleep = null;
 
     function formatTime(date) {
       const h = String(date.getHours()).padStart(2, "0");
@@ -165,40 +195,29 @@
       return `${h}:${m}`;
     }
 
-    sleepBtn.addEventListener("click", () => {
+    // トップ → 睡眠中
+    goSleepBtn.addEventListener("click", () => {
       sleepStart = new Date();
-      status.textContent = `就寝時刻：${formatTime(sleepStart)}　おやすみなさい。`;
-      catImage.src = "cat_sleep.png";
-      sleepBtn.style.display = "none";
-      wakeBtn.style.display = "inline-block";
-      winnerEl.textContent = "";
+      sleepStatus.textContent = `就寝時刻：${formatTime(sleepStart)}　おやすみなさい。`;
+
+      topScreen.style.display = "none";
+      sleepScreen.style.display = "block";
     });
 
+    // 睡眠中 → 結果
     wakeBtn.addEventListener("click", () => {
-      if (!sleepStart) return;
-
       const wakeTime = new Date();
       const diffHours =
         (wakeTime.getTime() - sleepStart.getTime()) / 1000 / 60 / 60;
 
-      // ランダムに「あい」か「かい」の睡眠時間を記録
-      aiSleep = diffHours + Math.random() * 0.5;
-      kaiSleep = diffHours + Math.random() * 0.5;
+      // あい・かいの睡眠時間（ランダム補正）
+      const aiSleep = diffHours + Math.random() * 0.3;
+      const kaiSleep = diffHours + Math.random() * 0.3;
 
-      sleepTimeEl.textContent = `あい：${aiSleep.toFixed(1)} 時間　／　かい：${kaiSleep.toFixed(1)} 時間`;
+      resultText.textContent =
+        `あい：${aiSleep.toFixed(1)} 時間　／　かい：${kaiSleep.toFixed(1)} 時間`;
 
-      wakeBtn.style.display = "none";
-      sleepBtn.style.display = "inline-block";
-
-      if (diffHours >= 7) {
-        catImage.src = "cat_good.png";
-        status.textContent = `起床時刻：${formatTime(wakeTime)}　よく眠れました。`;
-      } else {
-        catImage.src = "cat_bad.png";
-        status.textContent = `起床時刻：${formatTime(wakeTime)}　睡眠が少なめです。`;
-      }
-
-      // 勝者判定
+      // WINNER 判定
       if (aiSleep > kaiSleep) {
         winnerEl.textContent = "WINNER：あい 🏆";
       } else if (kaiSleep > aiSleep) {
@@ -207,7 +226,21 @@
         winnerEl.textContent = "DRAW 🤝";
       }
 
-      sleepStart = null;
+      // 猫の表情
+      if (diffHours >= 7) {
+        resultCat.src = "cat_good.png";
+      } else {
+        resultCat.src = "cat_bad.png";
+      }
+
+      sleepScreen.style.display = "none";
+      resultScreen.style.display = "block";
+    });
+
+    // トップに戻る
+    backBtn.addEventListener("click", () => {
+      resultScreen.style.display = "none";
+      topScreen.style.display = "block";
     });
   </script>
 </body>
